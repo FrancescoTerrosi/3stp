@@ -5,7 +5,7 @@ A professional, lightweight, zero-dependency Bash script to profile the executio
 ## &#128640; Features
 
 * **Statistical Analysis:** Calculates **Average**, **Min**, **Max**, and **Standard Deviation** to give you a complete picture of performance stability.
-* **Zero Dependencies:** Uses pure Bash math and `date`. No Python or `bc` required.
+* **Zero Dependencies:** Uses pure Bash math and `date`. No other dependencies required.
 * **Robust Argument Handling:** Correctly handles commands with flags and quoted arguments (e.g., filenames with spaces).
 * **Nanosecond Precision:** Uses `date +%s%N` for high-precision timing.
 * **Output Control:** Automatically suppresses `stdout` and `stderr` during profiling, with an optional verbose mode.
