@@ -1,0 +1,176 @@
+#!/bin/bash
+
+# ==========================================
+# 1. HELPER FUNCTIONS
+# ==========================================
+
+# Formats nanoseconds to seconds (s.ns)
+format_time() {
+    local input=$1
+    local size=${#input}
+    while [[ $size -le 9 ]]
+    do
+        input="0${input}"
+        size=$((size+1))
+    done
+    local k=$((size-9))
+    echo "${input:0:$k}.${input:$k:$((size-k))}"
+}
+
+# Integer Square Root (Newton's Method)
+sqrt() {
+    local n=$1
+    if [[ $n -le 0 ]]; then echo 0; return; fi
+    local x=$((n/2))
+    [[ $x -eq 0 ]] && x=1
+    local next_x
+    while true
+    do
+        next_x=$(( (x + n/x) / 2 ))
+        [[ $next_x -ge $x ]] && break
+        x=$next_x
+    done
+    echo $x
+}
+
+# Handle Ctrl+C (SIGINT)
+cleanup() {
+    echo -e "\n\nBenchmark interrupted by user."
+    exit 130
+}
+trap cleanup SIGINT
+
+# ==========================================
+# 2. ARGUMENT PARSING
+# ==========================================
+
+if [[ "$#" -lt 2 || "$1" == "-h" || "$1" == "--help" ]]
+then
+    echo -e "Usage: ./benchmark [-v] n_runs command..."
+    exit 1
+fi
+
+ARG1=$1
+
+if [[ "$ARG1" == "-v" ]]
+then
+    VERBOSE=1
+    N_RUNS=$2
+    shift 2
+    EXEC_COMMAND=("$@")
+else
+    VERBOSE=0
+    N_RUNS=$1
+    shift 1
+    EXEC_COMMAND=("$@")
+fi
+
+CALIBRATION_RUNS=100
+TOTAL_OVERHEAD=0
+
+for ((i=0; i < CALIBRATION_RUNS; i++))
+do
+    T1=$(date "+%s%N")
+    : # The "No-Op" command (does nothing, but triggers Bash parsing)
+    T2=$(date "+%s%N")
+    TOTAL_OVERHEAD=$((TOTAL_OVERHEAD + (T2 - T1)))
+done
+
+AVG_OVERHEAD=$((TOTAL_OVERHEAD / CALIBRATION_RUNS))
+
+# ==========================================
+# 3. PRE-FLIGHT CHECK
+# ==========================================
+
+# Check if command exists or is runnable
+if ! command -v "${EXEC_COMMAND[0]}" &> /dev/null && ! [[ -x "${EXEC_COMMAND[0]}" ]]
+then
+    # If not found, try running it once to see if it fails immediately
+    "${EXEC_COMMAND[@]}" &> /dev/null
+    if [[ $? -eq 127 ]]; then
+        echo "Error: Command '${EXEC_COMMAND[0]}' not found."
+        exit 127
+    fi
+fi
+
+# ==========================================
+# 4. EXECUTION LOOP
+# ==========================================
+
+declare -a runs_times
+TOTAL_NS=0
+
+# We assume that a program never takes more then 1000000 seconds to run
+MIN_NS=999999999999999
+MAX_NS=0
+
+if [[ $VERBOSE -eq 1 ]]
+then
+    echo "Running ${N_RUNS} tests on: ${EXEC_COMMAND[*]}"
+fi
+
+for ((i=0; i < N_RUNS; i++))
+do
+    
+    if [[ $VERBOSE -eq 1 ]]
+    then
+        START_TIME=$(date "+%s%N")
+        "${EXEC_COMMAND[@]}"
+        END_TIME=$(date "+%s%N")
+    else
+        START_TIME=$(date "+%s%N")
+        "${EXEC_COMMAND[@]}" >> /dev/null 2>&1
+        END_TIME=$(date "+%s%N")
+    fi
+    
+    DURATION=$((END_TIME - START_TIME))
+    DURATION=$((DURATION - AVG_OVERHEAD))
+    
+    # Sanity check for negative time (system clock sync issues)
+    if [[ $DURATION -lt 0 ]]
+    then
+        DURATION=0
+    fi
+
+    runs_times[$i]=$DURATION
+    
+    # Update Stats
+    TOTAL_NS=$((TOTAL_NS + DURATION))
+    if (( DURATION < MIN_NS ))
+    then
+        MIN_NS=$DURATION
+    fi
+    if (( DURATION > MAX_NS ))
+    then
+        MAX_NS=$DURATION
+    fi
+done
+
+# ==========================================
+# 5. STATS & OUTPUT
+# ==========================================
+
+AVG_NS=$((TOTAL_NS / N_RUNS))
+
+# Variance Calculation
+SUM_SQ_DIFF=0
+for t in "${runs_times[@]}"
+do
+    DIFF=$((t - AVG_NS))
+    SQ_DIFF=$((DIFF * DIFF))
+    SUM_SQ_DIFF=$((SUM_SQ_DIFF + SQ_DIFF))
+done
+VARIANCE=$((SUM_SQ_DIFF / N_RUNS))
+STD_DEV_NS=$(sqrt $VARIANCE)
+
+echo ""
+echo "------------------------------------------------"
+echo "Benchmark Results ($N_RUNS runs)"
+echo "------------------------------------------------"
+echo "Cmd:        ${EXEC_COMMAND[*]}"
+echo "Total Time: $(format_time $TOTAL_NS) s"
+echo "Average:    $(format_time $AVG_NS) s"
+echo "Min:        $(format_time $MIN_NS) s"
+echo "Max:        $(format_time $MAX_NS) s"
+echo "Std Dev:    $(format_time $STD_DEV_NS) s"
+echo "------------------------------------------------"
