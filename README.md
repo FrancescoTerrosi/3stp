@@ -1,4 +1,4 @@
-# Simple Sh Software Timing Profilare (3STP)
+# Simple Sh Software Timing Profiler (3STP)
 
 A professional, lightweight, zero-dependency Bash script to profile the execution time of any command or program over a specified number of runs.
 
@@ -90,7 +90,6 @@ Max:        0.104200000 s
 Std Dev:    0.000810500 s
 ------------------------------------------------
 ```
-*(This represents ~102 milliseconds)*
 
 ## &#129309; Contributing
 
