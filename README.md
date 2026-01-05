@@ -82,12 +82,14 @@ The script outputs the **average execution time per run**, formatted in seconds 
 ------------------------------------------------
 Benchmark Results (10 runs)
 ------------------------------------------------
-Cmd:        sleep 0.1
-Total Time: 1.025340100 s
-Average:    0.102534010 s
-Min:        0.101890000 s
-Max:        0.104200000 s
-Std Dev:    0.000810500 s
+Cmd:             sleep 0.1
+Total Time:      1.025340100 s
+------------------------------------------------
+Avg. Time:       0.102534010 s
+Avg. Overhead:   0.003120100 s (Subtracted)
+Min:             0.101890000 s
+Max:             0.104200000 s
+Std Dev:         0.000810500 s
 ------------------------------------------------
 ```
 
