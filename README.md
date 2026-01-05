@@ -1,19 +1,18 @@
 # Simple Shell Software Timing Profiler (3STP)
 
-A professional, lightweight, zero-dependency Bash script to profile the execution time of any command or program over a specified number of runs.
+A professional, lightweight, zero-dependency Bash script to profile the execution time of any command or program over a specified number of runs on Linux systems.
 
 ## &#128640; Features
 
 * **Statistical Analysis:** Calculates **Average**, **Min**, **Max**, and **Standard Deviation** to give you a complete picture of performance stability.
 * **Zero Dependencies:** Uses pure Bash math and `date`. No other dependencies required.
 * **Robust Argument Handling:** Correctly handles commands with flags and quoted arguments (e.g., filenames with spaces).
-* **Nanosecond Precision:** Uses `date +%s%N` for high-precision timing.
+* **Microsecond Accuracy:** Uses `$EPOCHREALTIME` for high-precision timing.
 * **Output Control:** Automatically suppresses `stdout` and `stderr` during profiling, with an optional verbose mode.
 
 ## &#128203; Prerequisites
 
-* **Bash** (Bourne Again SHell)
-* **GNU Date** (The script relies on `date +%s%N`. This is standard on most Linux distros. *Note: macOS users may need to install `coreutils` via Homebrew as the default BSD `date` does not support nanoseconds.*)
+* **Bash 5.0+** (Bourne Again SHell)
 
 ## &#128229; Installation
 
@@ -75,7 +74,7 @@ You can pass arguments to the command being profiled just as you normally would.
 
 ## &#9201; Output Format
 
-The script outputs the **average execution time per run**, formatted in seconds with nanosecond precision.
+The script outputs the **average execution time per run**, formatted in seconds with microsecond precision.
 
 **Example Output:**
 ```text
@@ -83,13 +82,13 @@ The script outputs the **average execution time per run**, formatted in seconds 
 Benchmark Results (10 runs)
 ------------------------------------------------
 Cmd:             sleep 0.1
-Total Time:      1.025340100 s
+Total Time:      1.040759 s
 ------------------------------------------------
-Avg. Time:       0.102534010 s
-Avg. Overhead:   0.003120100 s (Subtracted)
-Min:             0.101890000 s
-Max:             0.104200000 s
-Std Dev:         0.000810500 s
+Avg. Time:       0.104075 s
+Avg. Overhead:   0.000006 s (subtracted)
+Min:             0.102624 s
+Max:             0.104783 s
+Std Dev:         0.000565 s
 ------------------------------------------------
 ```
 
