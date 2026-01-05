@@ -8,12 +8,12 @@
 format_time() {
     local input=$1
     local size=${#input}
-    while [[ $size -le 9 ]]
+    while [[ $size -le 6 ]]
     do
         input="0${input}"
         size=$((size+1))
     done
-    local k=$((size-9))
+    local k=$((size-6))
     echo "${input:0:$k}.${input:$k:$((size-k))}"
 }
 
@@ -70,9 +70,11 @@ TOTAL_OVERHEAD=0
 
 for ((i=0; i < CALIBRATION_RUNS; i++))
 do
-    T1=$(date "+%s%N")
+    #T1=$(date "+%s%N")
+    T1=${EPOCHREALTIME/./}
     : # The "No-Op" command (does nothing, but triggers Bash parsing)
-    T2=$(date "+%s%N")
+    #T2=$(date "+%s%N")
+    T2=${EPOCHREALTIME/./}
     TOTAL_OVERHEAD=$((TOTAL_OVERHEAD + (T2 - T1)))
 done
 
@@ -114,13 +116,17 @@ do
     
     if [[ $VERBOSE -eq 1 ]]
     then
-        START_TIME=$(date "+%s%N")
+        #START_TIME=$(date "+%s%N")
+        START_TIME=${EPOCHREALTIME/./}
         "${EXEC_COMMAND[@]}"
+        #END_TIME=$(date "+%s%N")
         END_TIME=$(date "+%s%N")
     else
-        START_TIME=$(date "+%s%N")
+        #START_TIME=$(date "+%s%N")
+        START_TIME=${EPOCHREALTIME/./}
         "${EXEC_COMMAND[@]}" >> /dev/null 2>&1
-        END_TIME=$(date "+%s%N")
+        #END_TIME=$(date "+%s%N")
+        END_TIME=${EPOCHREALTIME/./}
     fi
     
     DURATION=$((END_TIME - START_TIME))
